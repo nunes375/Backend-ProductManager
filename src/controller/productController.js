@@ -2,11 +2,20 @@ const e = require("express");
 const pool = require("../../db");
 const queries = require("../queries/productQueries");
 
+// Error handling middleware
+const handleErrors = (res, error) => {
+  console.error(error);
+  res.status(500).send("Internal Server Error");
+};
+
 //get all products
 const getProducts = (req, res) => {
   // Retrieve all products from the database
   pool.query(queries.getProducts, (error, results) => {
-    if (error) throw error;
+    if (error) {
+      handleErrors(res, error);
+      return;
+    }
     res.status(200).json(results.rows);
   });
 };
@@ -16,8 +25,15 @@ const getProductById = (req, res) => {
   const id = parseInt(req.params.id);
   // Retrieve a product from the database based on the provided id
   pool.query(queries.getProductById, [id], (error, results) => {
-    if (error) throw error;
-    res.status(200).json(results.rows);
+    if (error) {
+      handleErrors(res, error);
+      return;
+    }
+    if (results.rows.length === 0) {
+      res.status(404).send("Product not found.");
+    } else {
+      res.status(200).json(results.rows);
+    }
   });
 };
 
@@ -27,7 +43,10 @@ const addProduct = (req, res) => {
 
   // Check if product exists
   pool.query(queries.getProductByTitle, [title], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      handleErrors(res, error);
+      return;
+    }
     if (results.rows.length > 0) {
       res.status(400).send("Product already exists.");
     } else {
@@ -46,7 +65,10 @@ const addProduct = (req, res) => {
         queries.addProduct,
         [title, description, price, formattedCategory],
         (error, results) => {
-          if (error) throw error;
+          if (error) {
+            handleErrors(res, error);
+            return;
+          }
           res.status(201).send("Product added successfully.");
         }
       );
@@ -64,11 +86,12 @@ const getProductByTitleOrCategory = (req, res) => {
       queries.getProductByTitleOrCategory,
       [titulo, categoria],
       (error, results) => {
-        console.log(queries.getProductByTitleOrCategory);
         if (error) {
-          res.status(500).send(error);
-        } else if (results.rows.length === 0) {
-          res.status(400).send("Product does not exist.");
+          handleErrors(res, error);
+          return;
+        }
+        if (results.rows.length === 0) {
+          res.status(404).send("Product not found.");
         } else {
           res.status(200).json(results.rows);
         }
@@ -76,34 +99,36 @@ const getProductByTitleOrCategory = (req, res) => {
     );
   } else if (titulo) {
     pool.query(queries.getProductByTitle, [titulo], (error, results) => {
-      console.log(queries.getProductByTitle);
       if (error) {
-        res.status(500).send(error);
-      } else if (results.rows.length === 0) {
-        res.status(400).send("Product does not exist.");
+        handleErrors(res, error);
+        return;
+      }
+      if (results.rows.length === 0) {
+        res.status(404).send("Product not found.");
       } else {
         res.status(200).json(results.rows);
       }
     });
   } else if (categoria) {
     pool.query(queries.getProductByCategory, [categoria], (error, results) => {
-      console.log(queries.getProductByCategory);
       if (error) {
-        res.status(500).send(error);
-      } else if (results.rows.length === 0) {
-        res.status(400).send("Category does not exist.");
+        handleErrors(res, error);
+        return;
+      }
+      if (results.rows.length === 0) {
+        res.status(404).send("Category not found.");
       } else {
-      res.status(200).json(results.rows);
+        res.status(200).json(results.rows);
       }
     });
-
   } else {
     pool.query(queries.getProducts, (error, results) => {
-      console.log(queries.getProducts);
       if (error) {
-        res.status(500).send(error);
-      } else if (results.rows.length === 0) {
-        res.status(400).send("Product does not exist.");
+        handleErrors(res, error);
+        return;
+      }
+      if (results.rows.length === 0) {
+        res.status(404).send("Product not found.");
       } else {
         res.status(200).json(results.rows);
       }
@@ -117,12 +142,18 @@ const deleteProduct = (req, res) => {
 
   // Check if the product exists in the database
   pool.query(queries.getProductById, [id], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      handleErrors(res, error);
+      return;
+    }
     if (results.rows.length === 0) {
-      res.status(400).send("Product does not exist.");
+      res.status(404).send("Product not found.");
     } else {
       pool.query(queries.removeProduct, [id], (error, results) => {
-        if (error) throw error;
+        if (error) {
+          handleErrors(res, error);
+          return;
+        }
         res.status(200).send("Product deleted successfully.");
       });
     }
@@ -136,9 +167,12 @@ const updateProduct = (req, res) => {
 
   // Check if the product exists in the database
   pool.query(queries.getProductById, [id], (error, results) => {
-    if (error) throw error;
+    if (error) {
+      handleErrors(res, error);
+      return;
+    }
     if (results.rows.length === 0) {
-      res.status(400).send("Product does not exist.");
+      res.status(404).send("Product not found.");
       return;
     }
 
@@ -163,7 +197,10 @@ const updateProduct = (req, res) => {
         id,
       ],
       (error, results) => {
-        if (error) throw error;
+        if (error) {
+          handleErrors(res, error);
+          return;
+        }
         res.status(200).send("Product updated successfully.");
       }
     );

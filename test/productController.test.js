@@ -31,6 +31,7 @@ describe("GET /api/v1/products", () => {
   test("should respond with status code 200", async () => {
     const response = await request(app).get("/api/v1/products");
     expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
   });
 });
 
@@ -41,6 +42,16 @@ describe("GET /api/v1/products/search", () => {
       "/api/v1/products/search?titulo=Test Product&categoria=Test Category"
     );
     expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body.length).toBeGreaterThan(0);
+  });
+
+  //test get product by non-existent title or category
+  test("should respond with status code 404 when no matching products are found", async () => {
+    const response = await request(app).get(
+      "/api/v1/products/search?titulo=Nonexistent Product&categoria=Nonexistent Category"
+    );
+    expect(response.status).toBe(404);
   });
 });
 
@@ -58,6 +69,14 @@ describe("POST /api/v1/products", () => {
     expect(response.status).toBe(201);
     expect(response.text).toBe("Product added successfully.");
     await pool.query(`DELETE FROM products WHERE title = 'Test Add Product'`);
+  });
+
+  //test add product with incomplete data
+  test("should respond with status code 400 when adding a product with incomplete data", async () => {
+    const response = await request(app)
+      .post("/api/v1/products/")
+      .send({ title: "Incomplete Product" });
+    expect(response.status).toBe(400);
   });
 });
 
@@ -97,6 +116,20 @@ describe("PUT /api/v1/products/:id", () => {
     // Clean up: Delete the product from the database
     await request(app).delete(`/api/v1/products/${id}`);
   });
+
+  //test update with non-existent product
+  test("should respond with status code 404 when updating a non-existent product", async () => {
+    const response = await request(app)
+      .put(`/api/v1/products/9999`)
+      .send({
+        title: "Updated Product",
+        description: "Updated Product Description",
+        price: 19.99,
+        category: ["Updated Category"],
+      });
+
+    expect(response.status).toBe(404);
+  });
 });
 
 //test delete product
@@ -125,4 +158,11 @@ describe("DELETE /api/v1/products/:id", () => {
     expect(deletedProductResponse.status).toBe(200);
     expect(deletedProductResponse.text).toBe("Product deleted successfully.");
   });
+
+  //test delete with non-existent product
+  test("should respond with status code 404 when deleting a non-existent product", async () => {
+    const response = await request(app).delete(`/api/v1/products/9999`);
+
+    expect(response.status).toBe(404);
+  })
 });
