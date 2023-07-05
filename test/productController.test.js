@@ -164,5 +164,5 @@ describe("DELETE /api/v1/products/:id", () => {
     const response = await request(app).delete(`/api/v1/products/9999`);
 
     expect(response.status).toBe(404);
-  })
+  });
 });

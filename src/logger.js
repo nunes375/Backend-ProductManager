@@ -1,15 +1,15 @@
-const pino = require('pino');
-const fs = require('fs');
+const pino = require("pino");
+const fs = require("fs");
 
 const logger = pino({
-    transport:{
-        target: 'pino-pretty',
-        options: {
-            traslateTime: true,
-            ignore: 'pid,hostname'
-        },
+  transport: {
+    target: "pino-pretty",
+    options: {
+      traslateTime: true,
+      ignore: "pid,hostname",
     },
-    level: 'info',
+  },
+  level: "info",
 });
 
 module.exports = logger;

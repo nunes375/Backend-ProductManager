@@ -17,7 +17,7 @@ const getProducts = (req, res) => {
       handleErrors(res, error);
       return;
     }
-    logger.info('Products retrieved successfully.');
+    logger.info("Products retrieved successfully.");
     res.status(200).json(results.rows);
   });
 };
@@ -65,7 +65,7 @@ const addProduct = (req, res) => {
       // Format the category array correctly
       const formattedCategory =
         category.length > 0 ? `{${category.join(",")}}` : null;
-        logger.trace(formattedCategory);
+      logger.trace(formattedCategory);
 
       // Add product
       pool.query(
@@ -195,36 +195,50 @@ const updateProduct = (req, res) => {
       return;
     }
 
-    // Get the existing product details
-    const existingProduct = results.rows[0];
-    logger.trace(existingProduct);
-
-    // Update only the provided fields
-    const updatedProduct = {
-      title: title || existingProduct.title,
-      description: description || existingProduct.description,
-      price: price || existingProduct.price,
-      category: category || existingProduct.category,
-    };
-
-    pool.query(
-      queries.updateProduct,
-      [
-        updatedProduct.title,
-        updatedProduct.description,
-        updatedProduct.price,
-        updatedProduct.category,
-        id,
-      ],
-      (error, results) => {
-        if (error) {
-          handleErrors(res, error);
-          return;
-        }
-        res.status(200).send("Product updated successfully.");
-        logger.info("Product updated successfully.");
+    pool.query(queries.getProductByTitle, [title], (error, resp) => {
+      if (error) {
+        handleErrors(res, error);
+        return;
       }
-    );
+      if (resp.rows.length > 0) {
+        res.status(400).send("Title already exists.");
+        logger.warn("Title already exists.");
+        return;
+      }
+
+      // Get the existing product details
+      const existingProduct = results.rows[0];
+      logger.trace(existingProduct);
+
+      // Update only the provided fields
+      const updatedProduct = {
+        title: title || existingProduct.title,
+        description: description || existingProduct.description,
+        price: price || existingProduct.price,
+        category: category || existingProduct.category,
+      };
+
+      logger.trace(updatedProduct);
+
+      pool.query(
+        queries.updateProduct,
+        [
+          updatedProduct.title,
+          updatedProduct.description,
+          updatedProduct.price,
+          updatedProduct.category,
+          id,
+        ],
+        (error, results) => {
+          if (error) {
+            handleErrors(res, error);
+            return;
+          }
+          res.status(200).send("Product updated successfully.");
+          logger.info("Product updated successfully.");
+        }
+      );
+    });
   });
 };
 
