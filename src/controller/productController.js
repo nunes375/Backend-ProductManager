@@ -1,10 +1,11 @@
 const e = require("express");
 const pool = require("../../db");
 const queries = require("../queries/productQueries");
+const logger = require("../logger");
 
 // Error handling middleware
 const handleErrors = (res, error) => {
-  console.error(error);
+  logger.error(error);
   res.status(500).send("Internal Server Error");
 };
 
@@ -16,6 +17,7 @@ const getProducts = (req, res) => {
       handleErrors(res, error);
       return;
     }
+    logger.info('Products retrieved successfully.');
     res.status(200).json(results.rows);
   });
 };
@@ -31,8 +33,10 @@ const getProductById = (req, res) => {
     }
     if (results.rows.length === 0) {
       res.status(404).send("Product not found.");
+      logger.warn("Product not found.");
     } else {
       res.status(200).json(results.rows);
+      logger.info("Product retrieved successfully.");
     }
   });
 };
@@ -49,16 +53,19 @@ const addProduct = (req, res) => {
     }
     if (results.rows.length > 0) {
       res.status(400).send("Product already exists.");
+      logger.warn("Product already exists.");
     } else {
       // Check if category is an array
       if (!Array.isArray(category)) {
         res.status(400).send("Category must be an array.");
+        logger.warn("Category must be an array.");
         return;
       }
 
       // Format the category array correctly
       const formattedCategory =
         category.length > 0 ? `{${category.join(",")}}` : null;
+        logger.trace(formattedCategory);
 
       // Add product
       pool.query(
@@ -70,6 +77,7 @@ const addProduct = (req, res) => {
             return;
           }
           res.status(201).send("Product added successfully.");
+          logger.info("Product added successfully.");
         }
       );
     }
@@ -92,8 +100,10 @@ const getProductByTitleOrCategory = (req, res) => {
         }
         if (results.rows.length === 0) {
           res.status(404).send("Product not found.");
+          logger.warn("Product not found.");
         } else {
           res.status(200).json(results.rows);
+          logger.info("Product retrieved successfully.");
         }
       }
     );
@@ -105,8 +115,10 @@ const getProductByTitleOrCategory = (req, res) => {
       }
       if (results.rows.length === 0) {
         res.status(404).send("Product not found.");
+        logger.warn("Product not found.");
       } else {
         res.status(200).json(results.rows);
+        logger.info("Product retrieved successfully.");
       }
     });
   } else if (categoria) {
@@ -117,8 +129,10 @@ const getProductByTitleOrCategory = (req, res) => {
       }
       if (results.rows.length === 0) {
         res.status(404).send("Category not found.");
+        logger.warn("Category not found.");
       } else {
         res.status(200).json(results.rows);
+        logger.info("Category retrieved successfully.");
       }
     });
   } else {
@@ -129,8 +143,10 @@ const getProductByTitleOrCategory = (req, res) => {
       }
       if (results.rows.length === 0) {
         res.status(404).send("Product not found.");
+        logger.warn("Product not found.");
       } else {
         res.status(200).json(results.rows);
+        logger.info("Product retrieved successfully.");
       }
     });
   }
@@ -148,6 +164,7 @@ const deleteProduct = (req, res) => {
     }
     if (results.rows.length === 0) {
       res.status(404).send("Product not found.");
+      logger.warn("Product not found.");
     } else {
       pool.query(queries.removeProduct, [id], (error, results) => {
         if (error) {
@@ -155,6 +172,7 @@ const deleteProduct = (req, res) => {
           return;
         }
         res.status(200).send("Product deleted successfully.");
+        logger.info("Product deleted successfully.");
       });
     }
   });
@@ -173,11 +191,13 @@ const updateProduct = (req, res) => {
     }
     if (results.rows.length === 0) {
       res.status(404).send("Product not found.");
+      logger.warn("Product not found.");
       return;
     }
 
     // Get the existing product details
     const existingProduct = results.rows[0];
+    logger.trace(existingProduct);
 
     // Update only the provided fields
     const updatedProduct = {
@@ -202,6 +222,7 @@ const updateProduct = (req, res) => {
           return;
         }
         res.status(200).send("Product updated successfully.");
+        logger.info("Product updated successfully.");
       }
     );
   });

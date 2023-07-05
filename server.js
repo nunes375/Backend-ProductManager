@@ -1,4 +1,5 @@
 const app = require("./app");
 const port = 3000;
+const logger = require("./src/logger");
 
-app.listen(port, () => console.log(`Server listening on port ${port}!`));
+app.listen(port, () => logger.info(`Server listening on port ${port}!`));
