@@ -51,9 +51,9 @@ npm install supertest --save-dev
 npx jest
 ```
 
-##Technologies used
+## Technologies used
 
--nodeJS
+-NodeJS
 -Express
 -PostgreSQL
 -Pino
