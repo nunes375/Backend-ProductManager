@@ -107,6 +107,7 @@ const getProductByTitleOrCategory = (req, res) => {
         }
       }
     );
+    // Retrieve products from the database based on title
   } else if (titulo) {
     pool.query(queries.getProductByTitle, [titulo], (error, results) => {
       if (error) {
@@ -121,6 +122,7 @@ const getProductByTitleOrCategory = (req, res) => {
         logger.info("Product retrieved successfully.");
       }
     });
+    // Retrieve products from the database based on category
   } else if (categoria) {
     pool.query(queries.getProductByCategory, [categoria], (error, results) => {
       if (error) {
@@ -135,6 +137,7 @@ const getProductByTitleOrCategory = (req, res) => {
         logger.info("Category retrieved successfully.");
       }
     });
+    // If no query parameters are provided, return all products
   } else {
     pool.query(queries.getProducts, (error, results) => {
       if (error) {
