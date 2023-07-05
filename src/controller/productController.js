@@ -1,21 +1,27 @@
-const pool = require('../../db');
-const queries = require('./queries');
+const e = require("express");
+const pool = require("../../db");
+const queries = require("../queries/productQueries");
 
+//get all products
 const getProducts = (req, res) => {
+  // Retrieve all products from the database
   pool.query(queries.getProducts, (error, results) => {
     if (error) throw error;
     res.status(200).json(results.rows);
   });
 };
 
+//get product by id
 const getProductById = (req, res) => {
   const id = parseInt(req.params.id);
+  // Retrieve a product from the database based on the provided id
   pool.query(queries.getProductById, [id], (error, results) => {
     if (error) throw error;
     res.status(200).json(results.rows);
   });
 };
 
+//add product
 const addProduct = (req, res) => {
   const { title, description, price, category } = req.body;
 
@@ -32,7 +38,8 @@ const addProduct = (req, res) => {
       }
 
       // Format the category array correctly
-      const formattedCategory = category.length > 0 ? `{${category.join(',')}}` : null;
+      const formattedCategory =
+        category.length > 0 ? `{${category.join(",")}}` : null;
 
       // Add product
       pool.query(
@@ -47,22 +54,28 @@ const addProduct = (req, res) => {
   });
 };
 
+//get product by title or category
 const getProductByTitleOrCategory = (req, res) => {
   const { titulo, categoria } = req.query;
 
   if (categoria && titulo) {
-    pool.query(queries.getProductByTitleOrCategory, [titulo, categoria], (error, results) => {
-      console.log(queries.getProductByTitleOrCategory);
-      if (error) {
-        res.status(500).send(error);
-      } else if (results.rows.length === 0) {
-        res.status(400).send("Product does not exist.");
-      } else {
-        res.status(200).json(results.rows);
+    // Retrieve products from the database based on both title and category
+    pool.query(
+      queries.getProductByTitleOrCategory,
+      [titulo, categoria],
+      (error, results) => {
+        console.log(queries.getProductByTitleOrCategory);
+        if (error) {
+          res.status(500).send(error);
+        } else if (results.rows.length === 0) {
+          res.status(400).send("Product does not exist.");
+        } else {
+          res.status(200).json(results.rows);
+        }
       }
-    });
+    );
   } else if (titulo) {
-    pool.query(queries.getProductByTitle, [titulo], (error, results) => {      
+    pool.query(queries.getProductByTitle, [titulo], (error, results) => {
       console.log(queries.getProductByTitle);
       if (error) {
         res.status(500).send(error);
@@ -72,6 +85,18 @@ const getProductByTitleOrCategory = (req, res) => {
         res.status(200).json(results.rows);
       }
     });
+  } else if (categoria) {
+    pool.query(queries.getProductByCategory, [categoria], (error, results) => {
+      console.log(queries.getProductByCategory);
+      if (error) {
+        res.status(500).send(error);
+      } else if (results.rows.length === 0) {
+        res.status(400).send("Category does not exist.");
+      } else {
+      res.status(200).json(results.rows);
+      }
+    });
+
   } else {
     pool.query(queries.getProducts, (error, results) => {
       console.log(queries.getProducts);
@@ -86,9 +111,11 @@ const getProductByTitleOrCategory = (req, res) => {
   }
 };
 
+//delete product
 const deleteProduct = (req, res) => {
   const id = parseInt(req.params.id);
 
+  // Check if the product exists in the database
   pool.query(queries.getProductById, [id], (error, results) => {
     if (error) throw error;
     if (results.rows.length === 0) {
@@ -102,10 +129,12 @@ const deleteProduct = (req, res) => {
   });
 };
 
+//update product
 const updateProduct = (req, res) => {
   const id = parseInt(req.params.id);
   const { title, description, price, category } = req.body;
 
+  // Check if the product exists in the database
   pool.query(queries.getProductById, [id], (error, results) => {
     if (error) throw error;
     if (results.rows.length === 0) {
@@ -121,12 +150,18 @@ const updateProduct = (req, res) => {
       title: title || existingProduct.title,
       description: description || existingProduct.description,
       price: price || existingProduct.price,
-      category: category || existingProduct.category
+      category: category || existingProduct.category,
     };
 
     pool.query(
       queries.updateProduct,
-      [updatedProduct.title, updatedProduct.description, updatedProduct.price, updatedProduct.category, id],
+      [
+        updatedProduct.title,
+        updatedProduct.description,
+        updatedProduct.price,
+        updatedProduct.category,
+        id,
+      ],
       (error, results) => {
         if (error) throw error;
         res.status(200).send("Product updated successfully.");
