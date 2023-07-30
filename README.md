@@ -1,10 +1,10 @@
-# BackendSmartex
+# Backend-ProductManager
 
-This application callled "BackendSmartex" is a backend CRUD app in nodeJs. It's an API capable of getting the products in database and also add, delete or update if needed.
+This application callled "Backend-ProductManager" is a backend CRUD app in nodeJs. It's an API capable of getting the products in database and also add, delete or update if needed.
 
 ## Guide to run application
 
-1. Install dependecies by running the terminal of the project "BackendSmartex":
+1. Install dependecies by running the terminal of the project "Backend-ProductManager":
 ``` 
 npm install
 npm install express
